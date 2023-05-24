@@ -86,3 +86,7 @@ div.CurrentPlayerStats {
 	/* make the text not selectable */
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
+
+div.transparent-overlay:hover {
+  opacity: 0.75;
+}

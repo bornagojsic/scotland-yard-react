@@ -40,14 +40,15 @@ const edges = [
   new Edge(nodes[6], nodes[0], 'bus'),
   new Edge(nodes[5], nodes[8], 'bus'),
   new Edge(nodes[5], nodes[6], 'tax'),
+  // new Edge(nodes[7], nodes[0], 'rvr'),
 ];
 
 const players = [
-  new Player("Player 1", 1, 'rgba(200, 0, 0, 1)', nodeR/2, 5, 3, 2),
-  new Player("Player 2", 2, 'rgba(0, 0, 200, 1)', nodeR/2, 5, 3, 2),
+  new Player("Player 1", 1, 'rgba(250, 0, 0, 1)', nodeR/2, 5, 3, 2),
+  new Player("Player 2", 2, 'rgba(0, 0, 250, 1)', nodeR/2, 5, 3, 2),
 ];
 
-const mrX = new MrX("Mr. X", 3, 'black', 5, 5, 3, 2, 1, 1);
+const mrX = new MrX("Mr. X", 3, 'black', nodeR/2, 5, 3, 2, 1, 1);
 
 const board = new Board();
 
@@ -65,24 +66,37 @@ function App() {
   const [boardPosition, setBoardPosition] = useState({x: 0, y: 0});
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const playersRef = useRef(Array(players.length).fill(null));
+  const mrXRef = useRef(null);
 
   const moveCurrentPlayerToPosition = (position) => {
     board.players[currentPlayerIndex].position = position;
     board.updatePositions();
-    /* console.log("Current player postion: " + playersRef.current[currentPlayerIndex].style.left + ", " + playersRef.current[currentPlayerIndex].style.top);
-    const updatedPlayers = [...playersRef.current];
-
-    updatedPlayers[currentPlayerIndex].style.left = board.nodes[position - 1].x/100 * maxWidth + 'px';
-    updatedPlayers[currentPlayerIndex].style.top = board.nodes[position - 1].y/100 * maxHeight + 'px';
-
-    // Update the playersRef
-    playersRef.current = updatedPlayers;
-    console.log("New player postion: " + playersRef.current[currentPlayerIndex].style.left + ", " + playersRef.current[currentPlayerIndex].style.top);
-    console.log("New player position: " + board.players[currentPlayerIndex].position); */
+    if (board.players[currentPlayerIndex].position === board.mrX.position) {
+      alert("Mr. X has been caught!");
+      return;
+    }
     setCurrentPlayerIndex((currentPlayerIndex + 1) % board.players.length);
   };
 
-  const handleClick = (object, index) => {
+  const moveMrXToPosition = (position) => {
+    board.mrX.position = position;
+    board.updatePositions();
+    setCurrentPlayerIndex((currentPlayerIndex + 1) % board.players.length);
+  };
+
+  const moveMrX = () => {
+    const possibleNodes = board.nodes[mrX.position - 1].connections.map((connection) => { 
+      // if no player is on the node, it is a possible node
+      if (!(board.positions.includes(connection.node.index)))
+        return connection.node.index; 
+    });
+    const randomIndex = Math.floor(Math.random() * (possibleNodes.length - 1));
+    const randomNode = possibleNodes[randomIndex];
+    moveMrXToPosition(randomNode);
+    board.round++;
+  };
+
+  const handleClick = (index) => {
     return ( () => {
       console.log("Current index:", index);
       console.log("All player indices:", board.positions);
@@ -94,6 +108,9 @@ function App() {
       });
       if (connectedNodes.includes(index) && (!(board.positions.includes(index)))) {
         moveCurrentPlayerToPosition(index);
+      }
+      if (currentPlayerIndex === board.players.length - 1) {
+        moveMrX();
       }
     }
     );
@@ -123,7 +140,7 @@ function App() {
             transform: `translate(-50%, -50%)`,
           }}
           key={node.index}
-          onClick={handleClick(node, node.index)}
+          onClick={handleClick(node.index)}
           > 
           {
             nodeIsConnected && !nodeIsOccupied ?
@@ -155,7 +172,7 @@ function App() {
         const y2 = edge.node2.y/100 * maxHeight /* + edge.node2.r/100 * minDimesion / 2 */;
         const angle = Math.PI-Math.atan2(x1-x2, y1-y2);
         const len = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
-        const color = edge.type === 'tax' ? 'black' : edge.type === 'bus' ? 'blue' : 'red';
+        const color = edge.type === 'udg' ? 'red' : edge.type === 'bus' ? 'blue' : 'black';
         
         let width = 2;
 
@@ -204,12 +221,31 @@ function App() {
             transform: `translate(-50%, -50%)`,
           }}
           key={index}
-          onClick={handleClick(player, index)}
           ref={(player) => (playersRef.current[playerIndex] = player)}
         >
         </div>
       })
     );
+  };
+
+  const MrX = () => {
+    const index = mrX.position;
+    return <div 
+      className="Player" 
+      style={{
+        backgroundColor: mrX.color,
+        left: board.nodes[index-1].x/100 * maxWidth - boardPosition.x,
+        top: board.nodes[index-1].y/100 * maxHeight - boardPosition.y,
+        height:  mrX.radius/100 * minDimension,
+        visibility: board.round % 5 === 3 ? 'visible' : 'hidden',
+        width: mrX.radius/100 * minDimension,
+        transform: `translate(-50%, -50%)`,
+      }}
+      key={index}
+      onClick={handleClick(index)}
+      ref={(mrX) => (mrXRef.current = mrX)}
+    >
+    </div>;
   };
 
   const ResizeButtons = () => {
@@ -297,6 +333,7 @@ function App() {
       <Nodes/>
       <Edges/>
       <Players/>
+      <MrX/>
       <CurrentPlayerStats/>
       {/* </MoveBoard> */}
       <HorizontalSlider/>
