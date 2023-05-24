@@ -98,15 +98,42 @@ function App() {
 
   const handleClick = (index) => {
     return ( () => {
-      console.log("Current index:", index);
-      console.log("All player indices:", board.positions);
+      // console.log("Current index:", index);
+      // console.log("All player indices:", board.positions);
       const nodeIndex = board.players[currentPlayerIndex].position;
       const node = board.nodes[nodeIndex - 1];
       const nodeEdges = node.connections;
-      const connectedNodes = nodeEdges.map((connection) => {
-        return connection.node.index;
+      const connectedTypes = [];
+      nodeEdges.forEach((connection) => {
+        if (
+          (connection.node.index === index) && 
+            (
+              (connection.type === 'tax' && board.players[currentPlayerIndex].tax > 0) ||
+              (connection.type === 'bus' && board.players[currentPlayerIndex].bus > 0) ||
+              (connection.type === 'udg' && board.players[currentPlayerIndex].udg > 0)
+            )
+          )
+          connectedTypes.push(connection.type);
       });
-      if (connectedNodes.includes(index) && (!(board.positions.includes(index)))) {
+      console.log("Connected types:", connectedTypes);
+      if (connectedTypes.length === 0) {
+        alert("No cards left for this type of connection!");
+        return;
+      }
+      if (!(board.positions.includes(index))) {
+        if (connectedTypes.length > 1) {
+          console.log("Connected types:", connectedTypes);
+        } else {
+          console.log("Connected type:", connectedTypes[0]);
+          if (connectedTypes[0] === 'tax') {
+            board.players[currentPlayerIndex].tax--;
+          } else if (connectedTypes[0] === 'bus') {
+            board.players[currentPlayerIndex].bus--;
+          } else if (connectedTypes[0] === 'udg') {
+            board.players[currentPlayerIndex].udg--;
+          }
+        }
+        console.log("TAX: ", board.players[currentPlayerIndex].tax, "BUS: ", board.players[currentPlayerIndex].bus, "UDG: ", board.players[currentPlayerIndex].udg);
         moveCurrentPlayerToPosition(index);
       }
       if (currentPlayerIndex === board.players.length - 1) {
@@ -125,7 +152,19 @@ function App() {
         const playerNode = board.nodes[currentPlayer.position - 1];
         const nodeIsConnected = playerNode.connections.map((connection) => {return connection.node.index}).includes(node.index);
         const nodeIsOccupied = board.positions.includes(node.index);
-        if (nodeIsConnected && !nodeIsOccupied) {
+        const possibleTypes = playerNode.connections.map((connection) => {
+          if (connection.node.index === node.index) {
+            return ['tax', 'bus', 'udg'].map((type) => {
+              if (connection.type === type && currentPlayer[type] > 0) {
+                return true;
+              }
+            }).some((element) => element);
+          }
+          return false;
+        });
+        console.log("Possible types:", possibleTypes);
+        const connectionExists = possibleTypes.some((element) => element);
+        if (nodeIsConnected && connectionExists && !nodeIsOccupied) {
           color = currentPlayer.color;
         }
         return <div 
