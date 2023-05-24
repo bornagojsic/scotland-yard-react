@@ -1,5 +1,6 @@
 class Player {
-	constructor(position, color, radius, tax, bus, udg) {
+	constructor(name, position, color, radius, tax, bus, udg) {
+		this.name = name;
 		this.position = position;
 		this.color = color;
 		this.radius = radius;

@@ -1,3 +1,7 @@
+body {
+  overflow: hidden;
+}
+
 .image-container {
   width: 100vw;
   height: 100vh;
@@ -50,4 +54,35 @@ div.CurrentPlayerStats {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
+}
+
+div.CurrentPlayerStats {
+  /* center the text */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	/* make the text fit */
+	font-size: 1em;
+	/* make the text not wrap */
+	white-space: nowrap;
+	/* make the text not overflow */
+	overflow: hidden;
+	/* make the text not selectable */
+	user-select: none;
+	/* make the text not selectable */
+	-webkit-user-select: none;
+	/* make the text not selectable */
+	-moz-user-select: none;
+	/* make the text not selectable */
+	-ms-user-select: none;
+	/* make the text not selectable */
+	-o-user-select: none;
+	/* make the text not selectable */
+	-khtml-user-select: none;
+	/* make the text not selectable */
+	-webkit-touch-callout: none;
+	/* make the text not selectable */
+	-webkit-tap-highlight-color: transparent;
+	/* make the text not selectable */
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }

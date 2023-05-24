@@ -29,8 +29,8 @@ const edges = [
 ];
 
 const players = [
-  new Player(1, 'red', 5, 5, 3, 2),
-  new Player(2, 'blue', 5, 5, 3, 2),
+  new Player("Player 1", 1, 'red', 5, 5, 3, 2),
+  new Player("Player 2", 2, 'blue', 5, 5, 3, 2),
 ];
 
 const board = new Board();
@@ -222,6 +222,33 @@ function App() {
     );
   };
 
+  useEffect(() => {
+    const handleScroll = (event) => {
+      // Get the amount of scroll delta from the event
+      const { deltaY } = event;
+      
+      if (deltaY < 0) {
+        setMaxWidth(maxWidth + 10);
+        setMaxHeight(maxHeight + 10);
+        setMinDimension(Math.min(maxWidth + 10, maxHeight + 10)
+        );
+      } else {
+        setMaxWidth(maxWidth - 10);
+        setMaxHeight(maxHeight - 10);
+        setMinDimension(Math.min(maxWidth - 10, maxHeight - 10)
+        );
+      }
+    };
+
+    // Attach the wheel event listener to the window object
+    window.addEventListener('wheel', handleScroll);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener('wheel', handleScroll);
+    };
+  }, [maxHeight, maxWidth, setMaxHeight, setMaxWidth, setMinDimension]);
+
   return (
     <div className="App">
       {/* <MoveBoard> */}
@@ -231,7 +258,7 @@ function App() {
       <CurrentPlayerStats/>
       {/* </MoveBoard> */}
       <HorizontalSlider/>
-      <ResizeButtons/>
+      {/* <ResizeButtons/> */}
     </div>
   );
 
