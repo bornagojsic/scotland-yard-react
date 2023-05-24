@@ -13,12 +13,20 @@ import Board from './Board';
 import Node from './Node';
 import Edge from './Edge';
 import Player from './Player';
+import MrX from './Player';
+
+const nodeR = 5;
 
 const nodes = [
-  new Node(10, 10, 10, 1),
-  new Node(15, 20, 10, 2),
-  new Node(30, 10, 10, 3),
-  new Node(20, 50, 10, 4),
+  new Node(10, 10, nodeR, 1),
+  new Node(15, 20, nodeR, 2),
+  new Node(30, 10, nodeR, 3),
+  new Node(20, 50, nodeR, 4),
+  new Node(30, 50, nodeR, 5),
+  new Node(50, 50, nodeR, 6),
+  new Node(50, 20, nodeR, 7),
+  new Node(25, 25, nodeR, 8),
+  new Node(35, 45, nodeR, 9),
 ];
 
 const edges = [
@@ -26,18 +34,27 @@ const edges = [
   new Edge(nodes[0], nodes[3], 'bus'),
   new Edge(nodes[2], nodes[3], 'udg'),
   new Edge(nodes[2], nodes[1], 'tax'),
+  new Edge(nodes[3], nodes[4], 'udg'),
+  new Edge(nodes[4], nodes[8], 'tax'),
+  new Edge(nodes[6], nodes[7], 'bus'),
+  new Edge(nodes[6], nodes[0], 'bus'),
+  new Edge(nodes[5], nodes[8], 'bus'),
+  new Edge(nodes[5], nodes[6], 'tax'),
 ];
 
 const players = [
-  new Player("Player 1", 1, 'red', 5, 5, 3, 2),
-  new Player("Player 2", 2, 'blue', 5, 5, 3, 2),
+  new Player("Player 1", 1, 'rgba(200, 0, 0, 1)', nodeR/2, 5, 3, 2),
+  new Player("Player 2", 2, 'rgba(0, 0, 200, 1)', nodeR/2, 5, 3, 2),
 ];
+
+const mrX = new MrX("Mr. X", 3, 'black', 5, 5, 3, 2, 1, 1);
 
 const board = new Board();
 
 nodes.forEach((node) => { board.addNode(node); });
 edges.forEach((edge) => { board.addEdge(edge); });
 players.forEach((player) => { board.addPlayer(player); });
+board.mrX = mrX;
 
 board.updatePositions();
 
@@ -85,9 +102,19 @@ function App() {
   const Nodes = () => {
     return (
       board.nodes.map((node) => {
+        // if a player can get to this node from his current node set its color to the player's color
+        let color = 'white';
+        const currentPlayer = board.players[currentPlayerIndex]
+        const playerNode = board.nodes[currentPlayer.position - 1];
+        const nodeIsConnected = playerNode.connections.map((connection) => {return connection.node.index}).includes(node.index);
+        const nodeIsOccupied = board.positions.includes(node.index);
+        if (nodeIsConnected && !nodeIsOccupied) {
+          color = currentPlayer.color;
+        }
         return <div 
           className="Node" 
           style={{
+            backgroundColor: `${color}`,
             fontSize: 0.5 * node.r/100 * minDimension,
             left: node.x/100 * maxWidth - boardPosition.x,
             top: node.y/100 * maxHeight - boardPosition.y,
@@ -98,7 +125,22 @@ function App() {
           key={node.index}
           onClick={handleClick(node, node.index)}
           > 
-          {node.index}
+          {
+            nodeIsConnected && !nodeIsOccupied ?
+              <div 
+                className='transparent-overlay'
+                style={{
+                  backgroundColor: `rgba(255, 255, 255, 0.5)`,
+                  position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >{node.index}
+              </div>
+            : node.index
+          }
         </div>
       })
       );
@@ -128,7 +170,7 @@ function App() {
             )
           ) 
         {
-          width = 8;
+          width = 4;
         }
 
         return <div 

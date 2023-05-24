@@ -1,9 +1,12 @@
 class Board {
-	constructor(nodes, edges, players) {
+	constructor(nodes, edges, players, mrX, round=1) {
 		this.nodes = nodes ? nodes : [];
 		this.edges = edges ? edges : [];
 		this.players = players ? players : [];
+		this.mrX = mrX ? mrX : null;
+		this.round = round;
 		this.positions = [];
+		this.mrXPosition = null;
 	};
 
 	addNode = function (node) {
@@ -25,6 +28,7 @@ class Board {
 
 	updatePositions = function () {
 		this.positions = this.players.map((player) => { return player.position; } )
+		this.mrXPosition = this.mrX.position;
 		return this;
 	};
 }
