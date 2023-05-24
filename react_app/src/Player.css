@@ -1,0 +1,55 @@
+div.Player {
+	/* draw a circle */
+	z-index: 1;
+	position: absolute;
+	border-radius: 50%;
+	border: 1px solid black;
+	/* center the text */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	/* make the text fit */
+	font-size: 0.8em;
+	/* make the text not wrap */
+	white-space: nowrap;
+	/* make the text not overflow */
+	overflow: hidden;
+	/* make the text not selectable */
+	user-select: none;
+	/* make the text not selectable */
+	-webkit-user-select: none;
+	/* make the text not selectable */
+	-moz-user-select: none;
+	/* make the text not selectable */
+	-ms-user-select: none;
+	/* make the text not selectable */
+	-o-user-select: none;
+	/* make the text not selectable */
+	-khtml-user-select: none;
+	/* make the text not selectable */
+	-webkit-touch-callout: none;
+	/* make the text not selectable */
+	-webkit-tap-highlight-color: transparent;
+	/* make the text not selectable */
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+/* div.Player:hover {
+	animation: scale 0.5s forwards;
+}
+
+div.Player.active {
+	width: 55px;
+	height: 55px;
+}
+
+@keyframes scale {
+	0% {
+		width: 35px;
+		height: 35px;
+	}
+	100% {
+		width: 55px;
+		height: 55px;
+	}
+} */
