@@ -14,40 +14,40 @@ import Node from './Node';
 import Edge from './Edge';
 import Player from './Player';
 
+const nodes = [
+  new Node(10, 10, 10, 1),
+  new Node(15, 20, 10, 2),
+  new Node(30, 10, 10, 3),
+  new Node(20, 50, 10, 4),
+];
+
+const edges = [
+  new Edge(nodes[0], nodes[1], 'tax'),
+  new Edge(nodes[0], nodes[3], 'bus'),
+  new Edge(nodes[2], nodes[3], 'udg'),
+  new Edge(nodes[2], nodes[1], 'tax'),
+];
+
+const players = [
+  new Player(1, 'red', 5, 5, 3, 2),
+  new Player(2, 'blue', 5, 5, 3, 2),
+];
+
+const board = new Board();
+
+nodes.forEach((node) => { board.addNode(node); });
+edges.forEach((edge) => { board.addEdge(edge); });
+players.forEach((player) => { board.addPlayer(player); });
+
+board.updatePositions();
+
 function App() {
   const [maxWidth, setMaxWidth] = useMaxWidth(window.innerWidth);
   const [maxHeight, setMaxHeight] = useMaxHeight(window.innerHeight);
   const [minDimension, setMinDimension] = useMinDimension(Math.min(maxWidth, maxHeight));
   const [boardPosition, setBoardPosition] = useState({x: 0, y: 0});
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-  const playersRef = useRef([]);
-
-  const nodes = [
-    new Node(10, 10, 10, 1),
-    new Node(15, 20, 10, 2),
-    new Node(30, 10, 10, 3),
-    new Node(20, 50, 10, 4),
-  ];
-
-  const edges = [
-    new Edge(nodes[0], nodes[1], 'tax'),
-    new Edge(nodes[0], nodes[3], 'bus'),
-    new Edge(nodes[2], nodes[3], 'udg'),
-    new Edge(nodes[2], nodes[1], 'tax'),
-  ];
-
-  const players = [
-    new Player(1, 'red', 5, 5, 3, 2),
-    new Player(2, 'blue', 5, 5, 3, 2),
-  ];
-
-  const board = new Board();
-
-  nodes.forEach((node) => { board.addNode(node); });
-  edges.forEach((edge) => { board.addEdge(edge); });
-  players.forEach((player) => { board.addPlayer(player); });
-
-  board.updatePositions();
+  const playersRef = useRef(Array(players.length).fill(null));
 
   const moveCurrentPlayerToPosition = (position) => {
     board.players[currentPlayerIndex].position = position;
@@ -191,6 +191,51 @@ function App() {
     );
   };
 
+  const HorizontalSlider = () => {
+    const settings = {
+      dots: true,
+      infinite: true,
+      speed: 500,
+      slidesToShow: 0,
+      slidesToScroll: 0
+    };
+  
+    return (
+      <Slider {...settings}>
+      </Slider>
+    );
+  };
+
+  const CurrentPlayerStats = () => {
+    return (
+      <div className="CurrentPlayerStats">
+        <div className="CurrentPlayerStats__index">
+          Current player: {currentPlayerIndex + 1}
+        </div>
+        <div className="CurrentPlayerStats__position">
+          Position: {board.players[currentPlayerIndex].position}
+        </div>
+        <div className="CurrentPlayerStats__cards">
+          Cards: {board.players[currentPlayerIndex].tax} TAX | {board.players[currentPlayerIndex].bus} BUS | {board.players[currentPlayerIndex].udg} UDG
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="App">
+      {/* <MoveBoard> */}
+      <Nodes/>
+      <Edges/>
+      <Players/>
+      <CurrentPlayerStats/>
+      {/* </MoveBoard> */}
+      <HorizontalSlider/>
+      <ResizeButtons/>
+    </div>
+  );
+
+  
   // const MoveBoard = ({ children }) => {
   //   const [isDragging, setIsDragging] = useState(false);
   //   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -239,50 +284,6 @@ function App() {
   //     </div>
   //   );
   // };
-
-  const HorizontalSlider = () => {
-    const settings = {
-      dots: true,
-      infinite: true,
-      speed: 500,
-      slidesToShow: 0,
-      slidesToScroll: 0
-    };
-  
-    return (
-      <Slider {...settings}>
-      </Slider>
-    );
-  };
-
-  const CurrentPlayerStats = () => {
-    return (
-      <div className="CurrentPlayerStats">
-        <div className="CurrentPlayerStats__index">
-          Current player: {currentPlayerIndex + 1}
-        </div>
-        <div className="CurrentPlayerStats__position">
-          Position: {board.players[currentPlayerIndex].position}
-        </div>
-        <div className="CurrentPlayerStats__cards">
-          Cards: {board.players[currentPlayerIndex].tax} TAX | {board.players[currentPlayerIndex].bus} BUS | {board.players[currentPlayerIndex].udg} UDG
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="App">
-      {/* <MoveBoard> */}
-      <Nodes/>
-      <Edges/>
-      <Players/>
-      <CurrentPlayerStats/>
-      {/* </MoveBoard> */}
-      <HorizontalSlider/>
-      <ResizeButtons/>
-    </div>
-  );
 }
 
 export default App;
