@@ -3,6 +3,8 @@ import React from 'react';
 import './StartScreen.css';
 
 const StartScreen = () => {
+  localStorage.setItem('elementPosition', JSON.stringify({x: 0, y: 0}));
+  
   return (
     <div className="StartScreen">
       <h1>Scotland Yard</h1>

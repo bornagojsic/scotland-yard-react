@@ -92,7 +92,7 @@ function Game() {
     board.nodes[mrX.position - 1].connections.forEach((connection) => { 
       // if no player is on the node, it is a possible node
       if (!(board.positions.includes(connection.node.index)))
-        possibleNodes.push(connection.node.index); 
+        possibleNodes.push(connection.node.index);
     });
     const randomIndex = Math.floor(Math.random() * (possibleNodes.length - 1));
     const randomNode = possibleNodes[randomIndex];
@@ -151,13 +151,12 @@ function Game() {
       const nodeEdges = node.connections;
       const connectedTypes = [];
       nodeEdges.forEach((connection) => {
-        if (
-          (connection.node.index === index) && 
-            ['tax', 'bus', 'udg'].map((type) => { 
-              return connection.type === type && board.players[currentPlayerIndex][type] > 0;
-            }).includes(true)
-          )
-          connectedTypes.push(connection.type);
+        if (connection.node.index === index)
+          ['tax', 'bus', 'udg'].forEach((type) => {
+            if (connection.type === type && board.players[currentPlayerIndex][type] > 0) {
+              connectedTypes.push(type);
+            }
+          });
       });
       console.log("Connected types:", connectedTypes);
       if (connectedTypes.length === 0) {
@@ -195,21 +194,27 @@ function Game() {
     return (
       board.nodes.map((node) => {
         // if a player can get to this node from his current node set its color to the player's color
+        /*
+        
+          REFACTOR THIS PART
+        
+        */
         let color = 'white';
         const currentPlayer = board.players[currentPlayerIndex]
         const playerNode = board.nodes[currentPlayer.position - 1];
         const nodeIsConnected = playerNode.connections.map((connection) => {return connection.node.index}).includes(node.index);
         const nodeIsOccupied = board.positions.includes(node.index);
-        const possibleTypes = playerNode.connections.map((connection) => {
+        const possibleTypes = [];
+        playerNode.connections.forEach((connection) => {
           if (connection.node.index === node.index) {
-            return ['tax', 'bus', 'udg'].map((type) => {
+            possibleTypes.push(['tax', 'bus', 'udg'].map((type) => {
               if (connection.type === type && currentPlayer[type] > 0) {
                 return true;
               }
               return false;
-            }).some((element) => element);
+            }).some((element) => element));
           }
-          return false;
+          possibleTypes.push(false);
         });
         // console.log("Possible types:", possibleTypes);
         const connectionExists = possibleTypes.some((element) => element);
