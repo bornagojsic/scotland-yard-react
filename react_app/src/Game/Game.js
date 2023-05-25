@@ -68,11 +68,16 @@ function Game() {
   const playersRef = useRef(Array(players.length).fill(null));
   const mrXRef = useRef(null);
 
+  const GameOver = (location) => {
+    window.location.href = location;
+    localStorage.setItem('elementPosition', JSON.stringify({x: 0, y: 0}));
+  };
+
   const moveCurrentPlayerToPosition = (position) => {
     board.players[currentPlayerIndex].position = position;
     board.updatePositions();
     if (board.players[currentPlayerIndex].position === board.mrX.position) {
-      window.location.href = '/gameover/?winner=players&reason=caught';
+      GameOver('/gameover/?winner=players&reason=caught');
       return;
     }
   };
@@ -110,7 +115,7 @@ function Game() {
       }
     });
     if (avaliableNodes.length === 0) {
-      window.location.href = `/gameover/?winner=mr. x&reason=${players[currentPlayerIndex].name}`;
+      GameOver(`/gameover/?winner=mr. x&reason=${players[currentPlayerIndex].name}`);
     }
   }
 
@@ -131,7 +136,7 @@ function Game() {
       }
     });
     if (avaliableNodes.length === 0) {
-      window.location.href = '/gameover/?winner=players&reason=noMoves';
+      GameOver('/gameover/?winner=players&reason=noMoves');
       return false;
     }
     return true;
@@ -178,7 +183,7 @@ function Game() {
       }
       setCurrentPlayerIndex((currentPlayerIndex + 1) % board.players.length);
       if (board.round === 22) {
-        window.location.href = '/gameover/?winner=mr. x?reason=escaped';
+        GameOver('/gameover/?winner=mr. x?reason=escaped');
       }
       // check if current player has any avaliable nodes to move to
       checkIfPlayerCanMove();
@@ -371,14 +376,16 @@ function Game() {
   const CurrentPlayerStats = () => {
     return (
       <div className="CurrentPlayerStats">
-        <div className="CurrentPlayerStats__index">
-          Current player: {board.players[currentPlayerIndex].name}
-        </div>
-        <div className="CurrentPlayerStats__position">
-          Position: {board.players[currentPlayerIndex].position}
-        </div>
-        <div className="CurrentPlayerStats__cards">
-          Cards: {board.players[currentPlayerIndex].tax} TAX | {board.players[currentPlayerIndex].bus} BUS | {board.players[currentPlayerIndex].udg} UDG
+        <div className="CurrentPlayerStatsContainer">
+          <div className="CurrentPlayerStats__name">
+            Current player: {board.players[currentPlayerIndex].name}
+          </div>
+          <div className="CurrentPlayerStats__position">
+            Position: {board.players[currentPlayerIndex].position}
+          </div>
+          <div className="CurrentPlayerStats__cards">
+            Cards: {board.players[currentPlayerIndex].tax} TAX | {board.players[currentPlayerIndex].bus} BUS | {board.players[currentPlayerIndex].udg} UDG
+          </div>
         </div>
       </div>
     );
@@ -411,16 +418,103 @@ function Game() {
     };
   }, [maxHeight, maxWidth, setMaxHeight, setMaxWidth, setMinDimension]);
 
+  const MovableDiv = ({children}) => {
+
+    const [isDragging, setIsDragging] = useState(false);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+    const [loading, setLoading] = useState(true);
+  
+    useEffect(() => {
+      const storedPosition = localStorage.getItem('elementPosition');
+      if (storedPosition) {
+        setPosition(JSON.parse(storedPosition));
+      }
+      setLoading(false);
+    }, []);
+  
+    // Update the position state and store it in localStorage whenever it changes
+    useEffect(() => {
+      localStorage.setItem('elementPosition', JSON.stringify(position));
+    }, [position]);
+
+    const handleMouseDown = (event) => {
+      setIsDragging(true);
+      setOffset({
+        x: event.clientX - position.x,
+        y: event.clientY - position.y
+      });
+    };
+  
+    const handleMouseMove = (event) => {
+      if (isDragging) {
+        setPosition({
+          x: event.clientX - offset.x,
+          y: event.clientY - offset.y
+        });
+      }
+    };
+  
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+  
+    useEffect(() => {
+      const handleDocumentMouseMove = (event) => {
+        handleMouseMove(event);
+      };
+  
+      const handleDocumentMouseUp = () => {
+        handleMouseUp();
+      };
+  
+      document.addEventListener('mousemove', handleDocumentMouseMove);
+      document.addEventListener('mouseup', handleDocumentMouseUp);
+  
+      return () => {
+        document.removeEventListener('mousemove', handleDocumentMouseMove);
+        document.removeEventListener('mouseup', handleDocumentMouseUp);
+      };
+    }, [handleMouseMove, handleMouseUp]);
+  
+    if (loading) {
+      return null;
+    }
+
+    return (
+      <div
+        style={{
+          zIndex: -10,
+          width: '100%',
+          height: '100%',
+          // backgroundColor: 'rgba(10, 200, 250, 0.5)',
+          position: 'absolute',
+          top: `${position.y}px`,
+          left: `${position.x}px`,
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        {children}
+      </div>
+    );
+  };
+
   return (
-    <div className="App">
+    <div className="Game">
       {/* <MoveBoard> */}
-      <Nodes/>
-      <Edges/>
-      <Players/>
-      <MrX/>
+      {/* <MovableDiv> */}
+      <MovableDiv>
+        <Nodes/>
+        <Edges/>
+        <Players/>
+        <MrX/>
+      </MovableDiv>
+      {/* </MovableDiv> */}
       <CurrentPlayerStats/>
       {/* </MoveBoard> */}
       <HorizontalSlider/>
+      {/* <MovableDiv/> */}
       {/* <ResizeButtons/> */}
     </div>
   );
