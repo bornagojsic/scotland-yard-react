@@ -63,15 +63,17 @@ function App() {
   const [maxWidth, setMaxWidth] = useMaxWidth(window.innerWidth);
   const [maxHeight, setMaxHeight] = useMaxHeight(window.innerHeight);
   const [minDimension, setMinDimension] = useMinDimension(Math.min(maxWidth, maxHeight));
-  const [boardPosition, setBoardPosition] = useState({x: 0, y: 0});
+  const [boardPosition/*, setBoardPosition*/] = useState({x: 0, y: 0});
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const playersRef = useRef(Array(players.length).fill(null));
   const mrXRef = useRef(null);
+  const gameOver = useRef(false);
 
   const moveCurrentPlayerToPosition = (position) => {
     board.players[currentPlayerIndex].position = position;
     board.updatePositions();
     if (board.players[currentPlayerIndex].position === board.mrX.position) {
+      gameOver.current = true;
       alert("Mr. X has been caught!");
       return;
     }
@@ -85,10 +87,11 @@ function App() {
   };
 
   const moveMrX = () => {
-    const possibleNodes = board.nodes[mrX.position - 1].connections.map((connection) => { 
+    const possibleNodes = [];
+    board.nodes[mrX.position - 1].connections.forEach((connection) => { 
       // if no player is on the node, it is a possible node
       if (!(board.positions.includes(connection.node.index)))
-        return connection.node.index; 
+        possibleNodes.push(connection.node.index); 
     });
     const randomIndex = Math.floor(Math.random() * (possibleNodes.length - 1));
     const randomNode = possibleNodes[randomIndex];
@@ -117,7 +120,6 @@ function App() {
       });
       console.log("Connected types:", connectedTypes);
       if (connectedTypes.length === 0) {
-        alert("No cards left for this type of connection!");
         return;
       }
       if (!(board.positions.includes(index))) {
@@ -125,13 +127,12 @@ function App() {
           console.log("Connected types:", connectedTypes);
         } else {
           console.log("Connected type:", connectedTypes[0]);
-          if (connectedTypes[0] === 'tax') {
-            board.players[currentPlayerIndex].tax--;
-          } else if (connectedTypes[0] === 'bus') {
-            board.players[currentPlayerIndex].bus--;
-          } else if (connectedTypes[0] === 'udg') {
-            board.players[currentPlayerIndex].udg--;
-          }
+          ['tax', 'bus', 'udg'].forEach((type) => {
+            if (connectedTypes[0] === type) {
+              board.players[currentPlayerIndex][type]--;
+              board.mrX[type]++;
+            }
+          });
         }
         console.log("TAX: ", board.players[currentPlayerIndex].tax, "BUS: ", board.players[currentPlayerIndex].bus, "UDG: ", board.players[currentPlayerIndex].udg);
         moveCurrentPlayerToPosition(index);
@@ -158,6 +159,7 @@ function App() {
               if (connection.type === type && currentPlayer[type] > 0) {
                 return true;
               }
+              return false;
             }).some((element) => element);
           }
           return false;
@@ -182,7 +184,7 @@ function App() {
           onClick={handleClick(node.index)}
           > 
           {
-            nodeIsConnected && !nodeIsOccupied ?
+            nodeIsConnected && connectionExists && !nodeIsOccupied ?
               <div 
                 className='transparent-overlay'
                 style={{
@@ -226,7 +228,8 @@ function App() {
             )
           ) 
         {
-          width = 4;
+          if (board.players[currentPlayerIndex][edge.type] > 0)
+            width = 4;
         }
 
         return <div 
@@ -287,7 +290,7 @@ function App() {
     </div>;
   };
 
-  const ResizeButtons = () => {
+  /* const ResizeButtons = () => {
     return (
       <div className="ResizeButtons">
         <button onClick={() => {
@@ -306,7 +309,7 @@ function App() {
         </button>
       </div>
     );
-  };
+  }; */
 
   const HorizontalSlider = () => {
     const settings = {
@@ -327,7 +330,7 @@ function App() {
     return (
       <div className="CurrentPlayerStats">
         <div className="CurrentPlayerStats__index">
-          Current player: {currentPlayerIndex + 1}
+          Current player: {board.players[currentPlayerIndex].name}
         </div>
         <div className="CurrentPlayerStats__position">
           Position: {board.players[currentPlayerIndex].position}
