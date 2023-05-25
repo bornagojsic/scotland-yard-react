@@ -67,23 +67,19 @@ function App() {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const playersRef = useRef(Array(players.length).fill(null));
   const mrXRef = useRef(null);
-  const gameOver = useRef(false);
 
   const moveCurrentPlayerToPosition = (position) => {
     board.players[currentPlayerIndex].position = position;
     board.updatePositions();
     if (board.players[currentPlayerIndex].position === board.mrX.position) {
-      gameOver.current = true;
-      alert("Mr. X has been caught!");
+      window.location.href = '/gameover/players';
       return;
     }
-    setCurrentPlayerIndex((currentPlayerIndex + 1) % board.players.length);
   };
 
   const moveMrXToPosition = (position) => {
     board.mrX.position = position;
     board.updatePositions();
-    setCurrentPlayerIndex((currentPlayerIndex + 1) % board.players.length);
   };
 
   const moveMrX = () => {
@@ -99,6 +95,25 @@ function App() {
     board.round++;
   };
 
+  const checkIfPlayerCanMove = () => {
+    const currentPlayer = board.players[(currentPlayerIndex + 1) % board.players.length];
+    const currentPlayerNode = board.nodes[currentPlayer.position - 1];
+    const currentPlayerNodeConnections = currentPlayerNode.connections;
+    const avaliableNodes = [];
+    currentPlayerNodeConnections.forEach((connection) => {
+      if (!(board.positions.includes(connection.node.index))) {
+        ['tax', 'bus', 'udg'].forEach((type) => {
+          if (connection.type === type && currentPlayer[type] > 0) {
+            avaliableNodes.push(connection.node.index);
+          }
+        });
+      }
+    });
+    if (avaliableNodes.length === 0) {
+      window.location.href = '/gameover/mrx';
+    }
+  }
+
   const handleClick = (index) => {
     return ( () => {
       // console.log("Current index:", index);
@@ -110,11 +125,9 @@ function App() {
       nodeEdges.forEach((connection) => {
         if (
           (connection.node.index === index) && 
-            (
-              (connection.type === 'tax' && board.players[currentPlayerIndex].tax > 0) ||
-              (connection.type === 'bus' && board.players[currentPlayerIndex].bus > 0) ||
-              (connection.type === 'udg' && board.players[currentPlayerIndex].udg > 0)
-            )
+            ['tax', 'bus', 'udg'].map((type) => { 
+              return connection.type === type && board.players[currentPlayerIndex][type] > 0;
+            }).includes(true)
           )
           connectedTypes.push(connection.type);
       });
@@ -140,6 +153,12 @@ function App() {
       if (currentPlayerIndex === board.players.length - 1) {
         moveMrX();
       }
+      setCurrentPlayerIndex((currentPlayerIndex + 1) % board.players.length);
+      if (board.round === 22) {
+        window.location.href = '/gameover/mrx';
+      }
+      // check if current player has any avaliable nodes to move to
+      checkIfPlayerCanMove();
     }
     );
   };
@@ -164,7 +183,7 @@ function App() {
           }
           return false;
         });
-        console.log("Possible types:", possibleTypes);
+        // console.log("Possible types:", possibleTypes);
         const connectionExists = possibleTypes.some((element) => element);
         if (nodeIsConnected && connectionExists && !nodeIsOccupied) {
           color = currentPlayer.color;
