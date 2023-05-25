@@ -3,7 +3,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-import './App.css';
+import './Game.css';
 import './Board.css';
 import './Node.css';
 import './Edge.css';
@@ -59,7 +59,7 @@ board.mrX = mrX;
 
 board.updatePositions();
 
-function App() {
+function Game() {
   const [maxWidth, setMaxWidth] = useMaxWidth(window.innerWidth);
   const [maxHeight, setMaxHeight] = useMaxHeight(window.innerHeight);
   const [minDimension, setMinDimension] = useMinDimension(Math.min(maxWidth, maxHeight));
@@ -72,7 +72,7 @@ function App() {
     board.players[currentPlayerIndex].position = position;
     board.updatePositions();
     if (board.players[currentPlayerIndex].position === board.mrX.position) {
-      window.location.href = '/gameover/players';
+      window.location.href = '/gameover/?winner=players&reason=caught';
       return;
     }
   };
@@ -110,8 +110,31 @@ function App() {
       }
     });
     if (avaliableNodes.length === 0) {
-      window.location.href = '/gameover/mrx';
+      window.location.href = `/gameover/?winner=mr. x&reason=${players[currentPlayerIndex].name}`;
     }
+  }
+
+  const checkIfMrXCanMove = () => {
+    console.log(board);
+    console.log(board.mrX.position)
+    console.log(board.nodes[board.mrX.position - 1]);
+    const currentMrXNode = board.nodes[board.mrX.position - 1];
+    const currentMrXNodeConnections = currentMrXNode.connections;
+    const avaliableNodes = [];
+    currentMrXNodeConnections.forEach((connection) => {
+      if (!(board.positions.includes(connection.node.index))) {
+        ['tax', 'bus', 'udg'].forEach((type) => {
+          if (connection.type === type && board.mrX[type] > 0) {
+            avaliableNodes.push(connection.node.index);
+          }
+        });
+      }
+    });
+    if (avaliableNodes.length === 0) {
+      window.location.href = '/gameover/?winner=players&reason=noMoves';
+      return false;
+    }
+    return true;
   }
 
   const handleClick = (index) => {
@@ -150,12 +173,12 @@ function App() {
         console.log("TAX: ", board.players[currentPlayerIndex].tax, "BUS: ", board.players[currentPlayerIndex].bus, "UDG: ", board.players[currentPlayerIndex].udg);
         moveCurrentPlayerToPosition(index);
       }
-      if (currentPlayerIndex === board.players.length - 1) {
+      if (currentPlayerIndex === board.players.length - 1 && checkIfMrXCanMove()) {
         moveMrX();
       }
       setCurrentPlayerIndex((currentPlayerIndex + 1) % board.players.length);
       if (board.round === 22) {
-        window.location.href = '/gameover/mrx';
+        window.location.href = '/gameover/?winner=mr. x?reason=escaped';
       }
       // check if current player has any avaliable nodes to move to
       checkIfPlayerCanMove();
@@ -453,4 +476,4 @@ function App() {
   // };
 }
 
-export default App;
+export default Game;
