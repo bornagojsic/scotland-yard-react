@@ -35,6 +35,11 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
+app.get('/', (req, res) => {
+  console.log('Received a GET request!');
+  res.send('Received your GET request!');
+});
+
 app.post('/', (req, res) => {
   console.log('Received a POST request!');
   console.log(req.body);
