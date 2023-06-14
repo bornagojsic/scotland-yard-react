@@ -4,6 +4,7 @@ import './StartScreen.css';
 
 const StartScreen = () => {
   localStorage.setItem('elementPosition', JSON.stringify({x: 0, y: 0}));
+  localStorage.setItem('gameInitialized', 'false');
   
   return (
     <div className="StartScreen">

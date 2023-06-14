@@ -68,6 +68,109 @@ function Game() {
   const playersRef = useRef(Array(players.length).fill(null));
   const mrXRef = useRef(null);
 
+  const sendMove = (mrXOnMove) => {
+    const gameInitialized = localStorage.getItem('gameInitialized');
+
+    console.log(gameInitialized);
+    console.log(gameInitialized == 'false');
+    console.log(gameInitialized === 'false');
+    
+    if (gameInitialized == 'false') {
+      localStorage.setItem('gameInitialized', 'true');
+      
+      console.log("Sending move...");
+      // const url = 'https://scotland-yard-backend.vercel.app/ai/new';
+      const url = 'http://localhost:9001/ai';
+
+      const mrXCards = ['tax', 'bus', 'udg', 'rvr', 'x2'].map((type) => {
+        return board.mrX[type];
+      });
+
+      const playersCards = board.players.map((player) => {
+        return ['tax', 'bus', 'udg'].map((type) => {
+          return player[type];
+        });
+      })
+
+      const nodes = board.nodes.map((node) => {
+        return node.index;
+      });
+
+      const connections = board.edges.map((edge) => {
+        return [edge.node1.index, edge.node2.index, edge.type];
+      });
+
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: 12345,
+          mrXOnMove: mrXOnMove,
+          playerPositions: board.positions,
+          playersCards: playersCards,
+          mrXPosition: board.mrX.position,
+          mrXCards: mrXCards,
+          nodes: nodes,
+          connections: connections,
+        })
+      })
+        .then(response => response.text())
+        .then(data => {
+          // Handle the response data
+          console.log(data);
+        })
+        .catch(error => {
+          // Handle any errors
+          console.error(error);
+        });
+      return;
+    }
+
+    console.log(board);
+    console.log("Sending move... with game initalized");
+    // const url = 'https://scotland-yard-backend.vercel.app/ai';
+    const url = 'http://localhost:9001/ai';
+
+    const mrXCards = ['tax', 'bus', 'udg', 'rvr', 'x2'].map((type) => {
+      return board.mrX[type];
+    });
+
+    const playersCards = board.players.map((player) => {
+      return ['tax', 'bus', 'udg'].map((type) => {
+        return player[type];
+      });
+    })
+
+    console.log(mrXCards);
+    console.log(playersCards);
+
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: 12345,
+        mrXOnMove: mrXOnMove,
+        playerPositions: board.positions,
+        playersCards: playersCards,
+        mrXPosition: board.mrX.position,
+        mrXCards: mrXCards,
+      })
+    })
+      .then(response => response.text())
+      .then(data => {
+        // Handle the response data
+        console.log(data.split('\n'));
+        if (mrXOnMove) {
+          moveMrXToPosition(data.split('\n')[3][data.split('\n')[3].length - 1]);
+          console.log("Mr. X moved to position " + data.split('\n')[3][data.split('\n')[3].length - 2]);
+        }
+      })
+      .catch(error => {
+        // Handle any errors
+        console.error(error);
+      });
+  };
+
   const GameOver = (location) => {
     window.location.href = location;
     localStorage.setItem('elementPosition', JSON.stringify({x: 0, y: 0}));
@@ -177,15 +280,15 @@ function Game() {
         console.log("TAX: ", board.players[currentPlayerIndex].tax, "BUS: ", board.players[currentPlayerIndex].bus, "UDG: ", board.players[currentPlayerIndex].udg);
         moveCurrentPlayerToPosition(index);
       }
-      if (currentPlayerIndex === board.players.length - 1 && checkIfMrXCanMove()) {
-        moveMrX();
-      }
+      const mrXOnMove = currentPlayerIndex === board.players.length - 1 && checkIfMrXCanMove();
       setCurrentPlayerIndex((currentPlayerIndex + 1) % board.players.length);
       if (board.round === 22) {
         GameOver('/gameover/?winner=mr. x?reason=escaped');
       }
       // check if current player has any avaliable nodes to move to
       checkIfPlayerCanMove();
+      console.log("Preparing to send move...");
+      sendMove(mrXOnMove);
     }
     );
   };
@@ -487,7 +590,7 @@ function Game() {
       return null;
     }
 
-    return (
+    return (      
       <div
         style={{
           zIndex: -10,
@@ -523,56 +626,6 @@ function Game() {
       {/* <ResizeButtons/> */}
     </div>
   );
-
-  
-  // const MoveBoard = ({ children }) => {
-  //   const [isDragging, setIsDragging] = useState(false);
-  //   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-
-  //   const handleMouseDown = (event) => {
-  //     setIsDragging(true);
-  //     const offsetX = event.clientX - boardPosition.x;
-  //     const offsetY = event.clientY - boardPosition.y;
-  //     setDragOffset({ x: offsetX, y: offsetY });
-  //   };
-
-  //   const handleMouseMove = (event) => {
-  //     if (isDragging) {
-  //       const newX = event.clientX - dragOffset.x;
-  //       const newY = event.clientY - dragOffset.y;
-  //       setBoardPosition({ x: newX, y: newY });
-  //     }
-  //   };
-
-  //   const handleMouseUp = () => {
-  //     setIsDragging(false);
-  //   };
-
-  //   // useEffect(() => {
-  //   //   document.addEventListener('mousemove', handleMouseMove);
-  //   //   document.addEventListener('mouseup', handleMouseUp);
-  
-  //   //   return () => {
-  //   //     document.removeEventListener('mousemove', handleMouseMove);
-  //   //     document.removeEventListener('mouseup', handleMouseUp);
-  //   //   };
-  //   // }, []);
-
-  //   return (
-  //     <div
-  //       onMouseDown={handleMouseDown}
-  //       onMouseMove={handleMouseMove}
-  //       onMouseUp={handleMouseUp}
-  //       style={{ 
-  //         height: maxHeight,
-  //         // background: dragging ? 'rgba(200,200,0,0.4)' : 'rgba(0,200,200,0.5)'
-  //       }}
-  //       width={maxWidth}
-  //     >
-  //       {children}
-  //     </div>
-  //   );
-  // };
 }
 
 export default Game;
